@@ -17,6 +17,8 @@ namespace Offscreen
         private const uint OffscreenHeight = 1024;
 
         private CommandList _cl;
+        private CommandList _cl2;
+        private CommandList _cl3;
         private Framebuffer _offscreenFB;
         private Pipeline _offscreenPipeline;
         private Model _dragonModel;
@@ -151,6 +153,8 @@ namespace Offscreen
                 GraphicsDevice.Aniso4xSampler));
 
             _cl = factory.CreateCommandList();
+            _cl2 = factory.CreateCommandList();
+            _cl3 = factory.CreateCommandList();
         }
 
         public struct UniformInfo
@@ -169,10 +173,17 @@ namespace Offscreen
             UpdateUniformBufferOffscreen();
 
             _cl.Begin();
+            _cl2.Begin();
+            _cl3.Begin();
             DrawOffscreen();
+            _cl2.SetFramebuffer(_offscreenFB);
             DrawMain();
             _cl.End();
+            _cl2.End();
+            _cl3.End();
             GraphicsDevice.SubmitCommands(_cl);
+            GraphicsDevice.SubmitCommands(_cl2);
+            GraphicsDevice.SubmitCommands(_cl3);
             GraphicsDevice.SwapBuffers();
         }
 
@@ -192,22 +203,22 @@ namespace Offscreen
 
         private void DrawMain()
         {
-            _cl.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
-            _cl.SetFullViewports();
-            _cl.ClearColorTarget(0, RgbaFloat.Black);
-            _cl.ClearDepthStencil(1f);
+            _cl3.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
+            _cl3.SetFullViewports();
+            _cl3.ClearColorTarget(0, RgbaFloat.Black);
+            _cl3.ClearDepthStencil(1f);
 
-            _cl.SetPipeline(_mirrorPipeline);
-            _cl.SetGraphicsResourceSet(0, _mirrorResourceSet);
-            _cl.SetVertexBuffer(0, _planeModel.VertexBuffer);
-            _cl.SetIndexBuffer(_planeModel.IndexBuffer, IndexFormat.UInt32);
-            _cl.DrawIndexed(_planeModel.IndexCount, 1, 0, 0, 0);
+            _cl3.SetPipeline(_mirrorPipeline);
+            _cl3.SetGraphicsResourceSet(0, _mirrorResourceSet);
+            _cl3.SetVertexBuffer(0, _planeModel.VertexBuffer);
+            _cl3.SetIndexBuffer(_planeModel.IndexBuffer, IndexFormat.UInt32);
+            _cl3.DrawIndexed(_planeModel.IndexCount, 1, 0, 0, 0);
 
-            _cl.SetPipeline(_dragonPipeline);
-            _cl.SetGraphicsResourceSet(0, _dragonResourceSet);
-            _cl.SetVertexBuffer(0, _dragonModel.VertexBuffer);
-            _cl.SetIndexBuffer(_dragonModel.IndexBuffer, IndexFormat.UInt32);
-            _cl.DrawIndexed(_dragonModel.IndexCount, 1, 0, 0, 0);
+            _cl3.SetPipeline(_dragonPipeline);
+            _cl3.SetGraphicsResourceSet(0, _dragonResourceSet);
+            _cl3.SetVertexBuffer(0, _dragonModel.VertexBuffer);
+            _cl3.SetIndexBuffer(_dragonModel.IndexBuffer, IndexFormat.UInt32);
+            _cl3.DrawIndexed(_dragonModel.IndexCount, 1, 0, 0, 0);
         }
 
         public static float DegreesToRadians(float degrees)
